@@ -10,6 +10,7 @@ Save this to a MongoDB collection or redis hset with their amount. (This way we 
 Show current total value in USD based on coingecko price
 '''
 import os, time, json
+import operator
 
 from dotenv import load_dotenv
 from MongoHelper import MongoHelper
@@ -37,38 +38,37 @@ def main():
     # takeValidatorSnapshot(list(validators.keys()))
     # exit()
 
-    print("Commissions for validator: ", addr)
-    commissions = dict(query_validator_commission_held_over_time(addr))
-    
-    import operator
-    # sort commissions by their key which is an epoch time
-    commissions = sorted(commissions.items(), key=operator.itemgetter(0), reverse=False) # newest time to oldest
-    lastCommission, lastTime, isFirst = -1, -1, False
 
+    getCommissionDifferencesOverTime(addr)
+
+    
+
+def epochTimeToHumanReadable(epoch: str):
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(epoch)))
+
+
+def getCommissionDifferencesOverTime(valop: str):
+    print("Commissions for validator: ", valop)    
+    # sort commissions by their key which is an epoch time
+    commissions = dict(query_validator_commission_held_over_time(valop))
+    commissions = sorted(commissions.items(), key=operator.itemgetter(0), reverse=False) # newest time to oldest
+
+    lastCommission, lastTime, isFirst = -1, -1, False
     for comm in commissions:
         t, amt = comm
         # print(t, amt)
 
         # handles first time & amount in the database as the initial gage
-        if lastCommission == -1:
-            lastCommission = amt
-            # print("Initial commission:", amt)
-            isFirst = True
-        if lastTime == -1:
-            lastTime = t
-            # print("Initial time:", t)
-            isFirst = True
+        if lastCommission == -1: lastCommission = amt;  isFirst = True     
+        if lastTime == -1: lastTime = t; isFirst = True
+        if isFirst: isFirst = False; continue
 
-        if isFirst:
-            isFirst = False
-            continue
-
-        # subtract amt from last commission, and print the time difference
+        # subtract amt from last commission, and print the time difference        
         print(f"\nBetween {epochTimeToHumanReadable(lastTime)} & {epochTimeToHumanReadable(t)}")
 
         diff = amt-lastCommission
-
         if diff > 0:        
+            # These would always be the same seconds provided we took snapshots at the correct times
             print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff}.\tTotal Commission Held: {amt}")
         else:
             from Coingecko import getPrice
@@ -77,13 +77,8 @@ def main():
             print(f"Total Gain: ${round((-diff)*coinprice, 2)}")
             # add to queue / query them for check blocks for any Txs they have done. 
             # Get their msg withdraw block from last time we checked blocks
-
-
         # update values for the next run    
         lastCommission, lastTime = amt, t
-
-def epochTimeToHumanReadable(epoch: str):
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(epoch)))
 
 
 def getDocuments():
