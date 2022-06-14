@@ -37,7 +37,7 @@ def main():
     # takeValidatorSnapshot(list(validators.keys()))
     # exit()
 
-    
+    print("Commissions for validator: ", addr)
     commissions = dict(query_validator_commission_held_over_time(addr))
     
     import operator
@@ -69,22 +69,18 @@ def main():
         diff = amt-lastCommission
 
         if diff > 0:        
-            print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff}")
+            print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff}.\tTotal Commission Held: {amt}")
         else:
             from Coingecko import getPrice
             coinprice = getPrice("cosmos")
             print(f"VALIDATOR WITHDREW REWARDS {diff} ATOM @ a price of $", coinprice)
             print(f"Total Gain: ${round((-diff)*coinprice, 2)}")
-            # we need to see which Tx they withdrew these rewards from
+            # add to queue / query them for check blocks for any Txs they have done. 
+            # Get their msg withdraw block from last time we checked blocks
 
 
         # update values for the next run    
         lastCommission, lastTime = amt, t
-        
-        
-
-    pass
-
 
 def epochTimeToHumanReadable(epoch: str):
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(epoch)))
