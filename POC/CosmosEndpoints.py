@@ -12,9 +12,10 @@ PAGE_LIMIT = "&pagination.limit=1000"
 def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
     # I assume /outstanding_rewards is their commission AND their self bonded rewards? Look into API
     response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/commission', headers=headers)
+    print(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/commission')
 
     data = {}
-    rewards = response.json()['rewards']['rewards']
+    rewards = response.json()['commission']['commission'] # /outstanding_rewards is 'rewards' 'rewards'
     for r in rewards:
         denom = r['denom']
         amt = r['amount']

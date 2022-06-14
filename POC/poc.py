@@ -1,6 +1,6 @@
 import requests
 import json
-from CosmosEndpoints import getLatestValidatorSet, getOutstandingRewards
+from CosmosEndpoints import getLatestValidatorSet, getOutstandingCommissionRewards
 import redis
 
 headers = {'accept': 'application/json'}
@@ -177,15 +177,16 @@ if __name__ == '__main__':
 
     acc = 'cosmosvaloper1uepjmgfuk6rnd0djsglu88w7d0t49lmljdpae2'
     token = "atom"
+    secondsSinceQuery = 25
 
-    outstanding = getOutstandingRewards(acc, True).get(token)
+    outstanding = getOutstandingCommissionRewards(acc, True).get(token)
     print(outstanding)
-    time.sleep(7)
+    time.sleep(secondsSinceQuery)
     
-    n2 = getOutstandingRewards(acc, True).get(token)
+    n2 = getOutstandingCommissionRewards(acc, True).get(token)
     print(n2)
 
-    print(f"{acc} gained:", n2-outstanding)
+    print(f"{acc} gained:", n2-outstanding, token, f" in the last {secondsSinceQuery} seconds")
 
 
 
