@@ -3,7 +3,7 @@ import requests
 # NO REDIS IN HERE
 
 # Switches randomly between the endpoints so we dont get cooldown'ed
-_REST_ENDPOINT = ["https://api.cosmos.network", "https://lcd.cosmos.ezstaking.io"]
+_REST_ENDPOINT = ["https://api.cosmos.network", "https://lcd.cosmos.ezstaking.io", "https://rest-cosmoshub.ecostake.com"]
 
 headers = {'accept': 'application/json'}
 PAGE_LIMIT = "&pagination.limit=1000"
