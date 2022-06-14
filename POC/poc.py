@@ -1,4 +1,9 @@
 import requests
+import json
+from CosmosEndpoints import getLatestValidatorSet, getOutstandingRewards
+import redis
+import dotenv
+import os
 headers = {'accept': 'application/json'}
 
 '''
@@ -16,17 +21,11 @@ Coin Gecko:
 
 # https://v1.cosmos.network/rpc/v0.45.1
 
-INITIAL_HEIGHT = 10449274 # height sg-1 undelegated
+INITIAL_HEIGHT = 10449274 # height sg-1 withdrew comission
+ 
 
-# get latest blocks (6 seconds)
-# loop through and see if /cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward is in there
-
-
-# 
-
-# outstanding rewards
-# curl -X GET "https://api.cosmos.network/cosmos/distribution/v1beta1/validators/cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c/outstanding_rewards" -H "accept: application/json"
-import json
+# load redis
+r = redis.Redis(host="localhost", port=6379, db=0)
 
 def getTxDetails(txHash: str):
     '''
@@ -88,26 +87,6 @@ def getTxDetails(txHash: str):
 
 
 
-            #     for event in log:
-
-            #         if event['type'] == "coin_received":
-            #             for attr in event['attributes']:
-            #                 if attr['key'] == "amount":
-            #                     receivedCommission = attr['value']
-            #                 elif attr['key'] == "receiver":
-            #                     receiverAddr = attr['value']
-
-            #         elif event['type'] == "message":
-            #             for attr in event['attributes']:
-            #                 if attr['key'] == "action" and attr['value'] == "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward":
-            #                     wasWithdraw = True
-                            
-            #         if wasWithdraw and len(receivedCommission) > 0:
-            #             break
-            # print(f"{delegator_address} {validator_address} {timestamp} {receiverAddr} {receivedCommission}")
-
-
-
 def getTxsByHeight(height: int):
     '''
     Loop through all blocks, get all txs, see if they are a match delegator reward
@@ -131,6 +110,30 @@ def getTxsByHeight(height: int):
     exit(1)
 
 
+
+import json
+
+
+def getAllValidatorsOutstandingRewards():
+    validators = getLatestValidatorSet(True)
+    for valKey in validators.keys():
+        k = f"commission:{valKey}"        
+        outstandingRewards = r.get(k)
+
+        fromRedis = False
+        if outstandingRewards is None:
+            outstandingRewards = getOutstandingRewards(valKey)
+            r.set(k, json.dumps(outstandingRewards), ex=3600)
+        else:
+            outstandingRewards = json.loads(outstandingRewards.decode('utf-8'))
+            fromRedis = True
+
+
+        print(valKey, validators.get(valKey)['moniker'], outstandingRewards, f"{fromRedis=}")         
+        # exit()
+        
+
+
 def getLatestBlockHeight() -> int: # anytime we query all validators balances, we also save this to cache
     response = requests.get('https://api.cosmos.network/blocks/latest', headers=headers).json()
     return int(response['block']['header']['height'])
@@ -138,5 +141,11 @@ def getLatestBlockHeight() -> int: # anytime we query all validators balances, w
 
 if __name__ == '__main__':
     # print(getLatestBlockHeight())
-    getTxDetails('FC8431ACA7444B87DD1DDE14E7FB7BB1BD0BC314B443325DE1268CE362636247')
+    # getTxDetails('FC8431ACA7444B87DD1DDE14E7FB7BB1BD0BC314B443325DE1268CE362636247')
+
+
+    getAllValidatorsOutstandingRewards()
+
+
+
     pass
