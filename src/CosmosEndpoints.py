@@ -26,6 +26,10 @@ def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
         data[denom] = amt
     return data
 
+def getLatestBlockHeight() -> int:
+    response = requests.get('https://api.cosmos.network/blocks/latest', headers=headers).json()
+    return int(response['block']['header']['height'])
+
 def getLatestValidatorSet(bondedOnly: bool = True):    
     link = f'{REST_ENDPOINT}/cosmos/staking/v1beta1/validators?'
     if bondedOnly: link += 'status=BOND_STATUS_BONDED'
@@ -46,6 +50,22 @@ def getValidatorSlashes(valop: str) -> list:
     response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/slashes').json()
     return response['slashes']
 
+
+# More specific
+
+def getTxsAtHeight(height: int, msgType: str = ""):
+    params = {
+        'events': f'tx.height={height}',
+        'order_by': 'ORDER_BY_UNSPECIFIED',
+    }
+    response = requests.get('https://api.cosmos.network/cosmos/tx/v1beta1/txs', params=params, headers=headers).json()
+    if len(msgType) == 0:
+        return response['txs']
+    
+    TxsWeWant = [] # from poc.py getTxsByHeight(
+    for msg in response['txs']['body']['messages']:
+        if msg['@type'] == msgType:
+            TxsWeWant.append(msg)
 
 
 if __name__ == '__main__':
