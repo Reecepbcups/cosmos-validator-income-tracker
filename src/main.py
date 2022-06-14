@@ -1,11 +1,10 @@
 '''
 Logic:
 
-- Every 60 minutes, query all validators (those who are bonded).
-  - Save to cache
+- Every 60 minutes, query all BONDED validators.
 
-Loop through validators & query their commission amounts in terms of ATOM (not uatom).
-Save this to a MongoDB collection or redis hset with their amount. (This way we can do a chart of their earnings over time every 1 hour)
+Loop through validators those validators & query their commission amounts in terms of ATOM.
+Save this to a MongoDB collection. (This way we can do a chart of their earnings over time every 1 hour)
 
 Show current total value in USD based on coingecko price
 '''
@@ -53,6 +52,9 @@ def getCommissionDifferencesOverTime(valop: str):
     commissions = dict(query_validator_commission_held_over_time(valop))
     commissions = sorted(commissions.items(), key=operator.itemgetter(0), reverse=False) # newest time to oldest
 
+    from Coingecko import getPrice
+    cosmosPrice = getPrice("cosmos")
+
     lastCommission, lastTime, isFirst = -1, -1, False
     for comm in commissions:
         t, amt = comm
@@ -69,12 +71,11 @@ def getCommissionDifferencesOverTime(valop: str):
         diff = amt-lastCommission
         if diff > 0:        
             # These would always be the same seconds provided we took snapshots at the correct times
-            print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff}.\tTotal Commission Held: {amt}")
+            print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff} (${round(diff*cosmosPrice, 3)}).\tTotal Commission Held: {amt}")
         else:
-            from Coingecko import getPrice
-            coinprice = getPrice("cosmos")
-            print(f"VALIDATOR WITHDREW REWARDS {diff} ATOM @ a price of $", coinprice)
-            print(f"Total Gain: ${round((-diff)*coinprice, 2)}")
+            
+            print(f"VALIDATOR WITHDREW REWARDS {diff} ATOM @ a price of $", cosmosPrice)
+            print(f"Total Gain: ${round((-diff)*cosmosPrice, 2)}")
             # add to queue / query them for check blocks for any Txs they have done. 
             # Get their msg withdraw block from last time we checked blocks
         # update values for the next run    
