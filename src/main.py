@@ -25,14 +25,14 @@ db = os.getenv('MONGO_DB_NAME')
 r = redis.Redis(host="localhost", port=6379, db=0)
 
 def main():
-    addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay"
+    addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay" # Castlenode
     # takeValidatorSnapshot(addr)
 
     '''
     gets latest cached version of the validator set
     '''
-    # valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
-    # print(len(valset), valset.keys()) 
+    valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
+    # print(len(valset), valset.keys()); #print(valset.get(addr)['moniker'])
     # takeValidatorSnapshot(list(valset.keys()))
 
 
@@ -67,6 +67,7 @@ def getCommissionDifferencesOverTime(valop: str):
         if diff > 0:        
             # These would always be the same seconds provided we took snapshots at the correct times
             print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff} (${round(diff*cosmosPrice, 3)}).\tTotal Commission Held: {amt}")
+            
         else:
             
             print(f"VALIDATOR WITHDREW REWARDS {diff} ATOM @ a price of $", cosmosPrice)
@@ -76,9 +77,11 @@ def getCommissionDifferencesOverTime(valop: str):
             # save the amount they withdrew to a MongoDB instance
             # data should have:
             # {validator: addr, {commissionWithdrawn: amt, time: t, hash: txhash}}
-
+            
         # update values for the next run    
         lastCommission, lastTime = amt, t
+
+        
 
 def getDocuments():
     '''Get mongodb documents from a collection in order based on the time field (epoch)'''
