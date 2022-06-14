@@ -1,3 +1,5 @@
+# This is just an example Tx from a tx query
+
 v = {'events': [
     {'type': 'coin_received', 'attributes': [
         {'key': 'receiver', 'value': 'cosmos196ax4vc0lwpxndu9dyhvca7jhxp70rmcfhxsrt'}, 

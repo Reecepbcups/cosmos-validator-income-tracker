@@ -2,27 +2,23 @@ import requests
 import json
 from CosmosEndpoints import getLatestValidatorSet, getOutstandingRewards
 import redis
-import dotenv
-import os
+
 headers = {'accept': 'application/json'}
 
 '''
 Solution:
-- We get the val set, and get bonded validators. (Redis cache this, recheck every 60 minutes?)
-- Update their amount of held amount of commission, if it is lower, we need to see when they withdrew it:
-    - get the last time we checked validators, and get the block height. Get latest block height. Loop through all blocks, get all txs which match withdrawing reward.
-    - Once we find the block, get the previous block, see how much rewards they had.
++ We get the val set, and get bonded validators. (Redis cache this, recheck every 60 minutes?)
+
 
 
 Coin Gecko:
 - Query coingeko for token price. Redis cache every 1 hour.
 '''
 
-
-# https://v1.cosmos.network/rpc/v0.45.1
-
 INITIAL_HEIGHT = 10449274 # height sg-1 withdrew comission
  
+
+
 
 # load redis
 r = redis.Redis(host="localhost", port=6379, db=0)
@@ -114,13 +110,24 @@ def getTxsByHeight(height: int):
 import json
 
 
-def getAllValidatorsOutstandingRewards():
-    validators = getLatestValidatorSet(True)
+def getAllValidatorsOutstandingRewards(fromCache=True):    
+    if fromCache == False:
+        validators = getLatestValidatorSet(True)
+    else: # get from cache          
+        k = "latestvalset"
+        latestVals = r.get(k) 
+        if latestVals != None:
+            print("Loaded val set from cache")
+            validators = json.loads(latestVals.decode('utf-8'))
+
+        r.set(k, json.dumps(validators), ex=3600)
+        
+
     for valKey in validators.keys():
         k = f"commission:{valKey}"        
         outstandingRewards = r.get(k)
-
         fromRedis = False
+
         if outstandingRewards is None:
             outstandingRewards = getOutstandingRewards(valKey)
             r.set(k, json.dumps(outstandingRewards), ex=3600)
@@ -132,19 +139,53 @@ def getAllValidatorsOutstandingRewards():
         print(valKey, validators.get(valKey)['moniker'], outstandingRewards, f"{fromRedis=}")         
         # exit()
         
+import re
+def compareOutstandingRewards():
+    rewards = {}
+    '''
+    - Update their amount of held amount of commission, if it is lower, we need to see when they withdrew it:
+    - get the last time we checked validators, and get the block height. Get latest block height. Loop through all blocks, get all txs which match withdrawing reward.
+    - Once we find the block, get the previous block, see how much rewards they had.
+    '''
+    # get latest rewards commissions, compare from the previous rewards.
+    # if they are lower, we have to scan all blocks & txs since last query & find where they withdrew
+    # if they are higher, we just append {"currentTime": amountGained} to their value
+
+    cachedRewards = getAllValidatorsOutstandingRewards(fromCache=True)
+    # currentRewards = getAllValidatorsOutstandingRewards(fromCache=False)
+
+    
+
+    # re.sub('\D', '', 'aas30dsa20') # removes all letters from string
+
+    # save latest block height to redis
+    pass
 
 
 def getLatestBlockHeight() -> int: # anytime we query all validators balances, we also save this to cache
     response = requests.get('https://api.cosmos.network/blocks/latest', headers=headers).json()
     return int(response['block']['header']['height'])
 
-
+import time
 if __name__ == '__main__':
     # print(getLatestBlockHeight())
     # getTxDetails('FC8431ACA7444B87DD1DDE14E7FB7BB1BD0BC314B443325DE1268CE362636247')
 
 
-    getAllValidatorsOutstandingRewards()
+    # getAllValidatorsOutstandingRewards()
+    # compareOutstandingRewards()
+
+    acc = 'cosmosvaloper1uepjmgfuk6rnd0djsglu88w7d0t49lmljdpae2'
+    token = "atom"
+
+    outstanding = getOutstandingRewards(acc, True).get(token)
+    print(outstanding)
+    time.sleep(7)
+    
+    n2 = getOutstandingRewards(acc, True).get(token)
+    print(n2)
+
+    print(f"{acc} gained:", n2-outstanding)
 
 
 
