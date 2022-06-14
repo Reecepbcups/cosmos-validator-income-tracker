@@ -1,4 +1,5 @@
 # This is just an example Tx from a tx query
+# This is so we can check for /cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission action event
 
 v = {'events': [
     {'type': 'coin_received', 'attributes': [

@@ -8,7 +8,7 @@ Save this to a MongoDB collection. (This way we can do a chart of their earnings
 
 Show current total value in USD based on coingecko price
 '''
-import os, time, json
+import os, time, json, redis
 import operator
 
 from dotenv import load_dotenv
@@ -20,7 +20,7 @@ load_dotenv()
 m = MongoHelper(uri=os.getenv('MONGODB_URI'))
 db = os.getenv('MONGO_DB_NAME')
 # print(m.get_databases())
-
+r = redis.Redis(host="localhost", port=6379, db=0)
 
 def main():
     addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay"

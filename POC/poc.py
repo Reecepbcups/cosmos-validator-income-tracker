@@ -8,11 +8,6 @@ headers = {'accept': 'application/json'}
 '''
 Solution:
 + We get the val set, and get bonded validators. (Redis cache this, recheck every 60 minutes?)
-
-
-
-Coin Gecko:
-- Query coingeko for token price. Redis cache every 1 hour.
 '''
 
 INITIAL_HEIGHT = 10449274 # height sg-1 withdrew comission
