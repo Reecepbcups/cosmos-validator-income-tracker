@@ -9,3 +9,11 @@ Save this to a MongoDB collection or redis hset with their amount. (This way we 
 
 Show current total value in USD based on coingecko price
 '''
+import os
+
+from dotenv import load_dotenv
+from MongoHelper import MongoHelper
+
+load_dotenv()
+m = MongoHelper(uri=os.getenv('MONGO_URI'))
+print(m.get_databases())
