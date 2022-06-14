@@ -129,7 +129,7 @@ def getAllValidatorsOutstandingRewards(fromCache=True):
         fromRedis = False
 
         if outstandingRewards is None:
-            outstandingRewards = getOutstandingRewards(valKey)
+            outstandingRewards = getOutstandingCommissionRewards(valKey)
             r.set(k, json.dumps(outstandingRewards), ex=3600)
         else:
             outstandingRewards = json.loads(outstandingRewards.decode('utf-8'))

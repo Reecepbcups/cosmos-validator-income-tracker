@@ -2,8 +2,8 @@ import requests
 
 # NO REDIS THINGS IN HERE
 
-# REST_ENDPOINT = "https://api.cosmos.network"
-REST_ENDPOINT = "https://lcd.cosmos.ezstaking.io"
+REST_ENDPOINT = "https://api.cosmos.network"
+# REST_ENDPOINT = "https://lcd.cosmos.ezstaking.io"
 headers = {'accept': 'application/json'}
 PAGE_LIMIT = "&pagination.limit=1000"
 

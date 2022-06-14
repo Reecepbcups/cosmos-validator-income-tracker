@@ -67,10 +67,10 @@ class MongoHelper():
     def drop_database(self, dbName) -> bool:
         return self.client[dbName].drop()
 
-    def update_one(self, dbName, collectionName, filter={}, newValue={}):
+    def update_one(self, dbName, collectionName, filter={}, newValue={}, upsert=True):
         # update_one(db, collection, filter={"address": "123 street"}, newValue={"address": "124 main"})
         myCol = self.client[dbName][collectionName]
-        myCol.update_one(filter, { "$set": newValue})
+        myCol.update_one(filter, { "$set": newValue}, upsert=upsert)
 
     ## -- test
     def create_new_user(self, username, password, database):
