@@ -8,8 +8,4 @@ Loop through validators & query their commission amounts in terms of ATOM (not u
 Save this to a MongoDB collection or redis hset with their amount. (This way we can do a chart of their earnings over time every 1 hour)
 
 Show current total value in USD based on coingecko price
-
-
-
-
 '''
