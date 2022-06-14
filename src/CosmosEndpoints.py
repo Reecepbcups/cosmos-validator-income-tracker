@@ -1,6 +1,6 @@
 import requests
 
-# NO REDIS THINGS IN HERE
+# NO REDIS IN HERE
 
 REST_ENDPOINT = "https://api.cosmos.network"
 # REST_ENDPOINT = "https://lcd.cosmos.ezstaking.io"
@@ -8,6 +8,12 @@ headers = {'accept': 'application/json'}
 PAGE_LIMIT = "&pagination.limit=1000"
 
 # https://v1.cosmos.network/rpc/v0.45.1
+
+
+'''
+https://github.com/cosmos/cosmos-sdk/blob/main/docs/core/events.md < docs on events
+Looks like I could subscribe via RPC
+'''
 
 def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
     # I assume /outstanding_rewards is their commission AND their self bonded rewards? Look into API
@@ -30,6 +36,13 @@ def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
 def getLatestBlockHeight() -> int:
     response = requests.get('https://api.cosmos.network/blocks/latest', headers=headers).json()
     return int(response['block']['header']['height'])
+    
+
+def getLatestBlockTransactions(block: str = "latest") -> list:
+    l = f'https://api.cosmos.network/blocks/{block}'
+    print(l)
+    response = requests.get(l, headers=headers).json()
+    return response['block']['data']['txs']
 
 
 def getLatestValidatorSet(bondedOnly: bool = True):    
@@ -69,5 +82,38 @@ def getTxsAtHeight(height: int, msgType: str = ""):
             TxsWeWant.append(msg)
 
 
-if __name__ == '__main__':
-    print(getLatestValidatorSet(True))
+def getTxEvents(height: int, key = "txs"): # or tx_responses
+    params = {
+    'events': [
+        f'tx.height={height}',
+        'message.module=\'distribution\'',
+    ],
+    'order_by': 'ORDER_BY_UNSPECIFIED',
+    }
+    # curl -X GET "https://api.cosmos.network/cosmos/tx/v1beta1/txs?events=tx.height%3D10449274&events=message.module%3D'distribution'&order_by=ORDER_BY_UNSPECIFIED" -H "accept: application/json"
+    return requests.get('https://api.cosmos.network/cosmos/tx/v1beta1/txs', params=params, headers=headers).json()[key]
+
+
+if __name__ == '__main__': 
+    # print(getLatestValidatorSet(True))
+    # txs = getLatestBlockTransactions("10449274")
+    # import base64
+    # for t in txs:
+    #     t = base64.b64decode(t)
+
+    #     if b'/cosmos.distribution.v1beta1.MsgWithdrawcValidatorCommission' in t:
+    #         print(t)
+    #         print()
+
+
+    # This is not even required bc we know how much they withdrew since we grab the commissions
+    # tx = getTxEvents(10449274, 'tx_responses')
+    # for t in tx:
+    #     print(t['raw_log'])
+    #     body = t['body']
+    #     messages = body['messages']
+    #     for msg in messages:
+    #         if msg['@type'] == '/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission':
+    #             print(msg)
+
+    pass
