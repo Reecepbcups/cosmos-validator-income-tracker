@@ -42,7 +42,7 @@ def main():
     
     import operator
     # sort commissions by their key which is an epoch time
-    commissions = sorted(commissions.items(), key=operator.itemgetter(1), reverse=False) # newest time to oldest
+    commissions = sorted(commissions.items(), key=operator.itemgetter(0), reverse=False) # newest time to oldest
     lastCommission, lastTime, isFirst = -1, -1, False
 
     for comm in commissions:
@@ -65,7 +65,18 @@ def main():
 
         # subtract amt from last commission, and print the time difference
         print(f"\nBetween {epochTimeToHumanReadable(lastTime)} & {epochTimeToHumanReadable(t)}")
-        print(f"in {int(t)-int(lastTime)} Seconds they made {amt-lastCommission} ATOM")
+
+        diff = amt-lastCommission
+
+        if diff > 0:        
+            print(f"in {int(t)-int(lastTime)} Seconds their ATOM increased by {diff}")
+        else:
+            from Coingecko import getPrice
+            coinprice = getPrice("cosmos")
+            print(f"VALIDATOR WITHDREW REWARDS {diff} ATOM @ a price of $", coinprice)
+            print(f"Total Gain: ${round((-diff)*coinprice, 2)}")
+            # we need to see which Tx they withdrew these rewards from
+
 
         # update values for the next run    
         lastCommission, lastTime = amt, t
