@@ -4,6 +4,3 @@ cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c
 
 Block: 10449274
 Tx: FC8431ACA7444B87DD1DDE14E7FB7BB1BD0BC314B443325DE1268CE362636247
-
-	
-/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission

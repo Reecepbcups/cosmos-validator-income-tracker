@@ -2,8 +2,9 @@ import requests
 
 # NO REDIS IN HERE
 
-REST_ENDPOINT = "https://api.cosmos.network"
-# REST_ENDPOINT = "https://lcd.cosmos.ezstaking.io"
+# Switches randomly between the endpoints so we dont get cooldown'ed
+_REST_ENDPOINT = ["https://api.cosmos.network", "https://lcd.cosmos.ezstaking.io"]
+
 headers = {'accept': 'application/json'}
 PAGE_LIMIT = "&pagination.limit=1000"
 
@@ -15,10 +16,14 @@ https://github.com/cosmos/cosmos-sdk/blob/main/docs/core/events.md < docs on eve
 Looks like I could subscribe via RPC
 '''
 
+import random as r
+def getEndpoint():
+    return _REST_ENDPOINT[r.randint(0, len(_REST_ENDPOINT)-1)]
+
 def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
     # I assume /outstanding_rewards is their commission AND their self bonded rewards? Look into API
-    response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/commission', headers=headers)
-    print(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/commission')
+    response = requests.get(f'{getEndpoint()}/cosmos/distribution/v1beta1/validators/{valop}/commission', headers=headers)
+    print(f'{getEndpoint()}/cosmos/distribution/v1beta1/validators/{valop}/commission')
 
     data = {}
     rewards = response.json()['commission']['commission'] # /outstanding_rewards is 'rewards' 'rewards'
@@ -34,19 +39,19 @@ def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
 
 
 def getLatestBlockHeight() -> int:
-    response = requests.get('https://api.cosmos.network/blocks/latest', headers=headers).json()
+    response = requests.get(f'{getEndpoint()}/blocks/latest', headers=headers).json()
     return int(response['block']['header']['height'])
     
 
 def getLatestBlockTransactions(block: str = "latest") -> list:
-    l = f'https://api.cosmos.network/blocks/{block}'
+    l = f'{getEndpoint()}/blocks/{block}'
     print(l)
     response = requests.get(l, headers=headers).json()
     return response['block']['data']['txs']
 
 
 def getLatestValidatorSet(bondedOnly: bool = True):    
-    link = f'{REST_ENDPOINT}/cosmos/staking/v1beta1/validators?'
+    link = f'{getEndpoint()}/cosmos/staking/v1beta1/validators?'
     if bondedOnly: link += 'status=BOND_STATUS_BONDED'
     validators = {}
 
@@ -62,7 +67,7 @@ def getLatestValidatorSet(bondedOnly: bool = True):
 
 
 def getValidatorSlashes(valop: str) -> list:
-    response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/slashes').json()
+    response = requests.get(f'{getEndpoint()}/cosmos/distribution/v1beta1/validators/{valop}/slashes').json()
     return response['slashes']
 
 
@@ -91,29 +96,12 @@ def getTxEvents(height: int, key = "txs"): # or tx_responses
     'order_by': 'ORDER_BY_UNSPECIFIED',
     }
     # curl -X GET "https://api.cosmos.network/cosmos/tx/v1beta1/txs?events=tx.height%3D10449274&events=message.module%3D'distribution'&order_by=ORDER_BY_UNSPECIFIED" -H "accept: application/json"
-    return requests.get('https://api.cosmos.network/cosmos/tx/v1beta1/txs', params=params, headers=headers).json()[key]
+    return requests.get(f'{getEndpoint()}/cosmos/tx/v1beta1/txs', params=params, headers=headers).json()[key]
 
 
 if __name__ == '__main__': 
     # print(getLatestValidatorSet(True))
-    # txs = getLatestBlockTransactions("10449274")
-    # import base64
-    # for t in txs:
-    #     t = base64.b64decode(t)
 
-    #     if b'/cosmos.distribution.v1beta1.MsgWithdrawcValidatorCommission' in t:
-    #         print(t)
-    #         print()
-
-
-    # This is not even required bc we know how much they withdrew since we grab the commissions
-    # tx = getTxEvents(10449274, 'tx_responses')
-    # for t in tx:
-    #     print(t['raw_log'])
-    #     body = t['body']
-    #     messages = body['messages']
-    #     for msg in messages:
-    #         if msg['@type'] == '/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission':
-    #             print(msg)
+    # no tx things here!
 
     pass
