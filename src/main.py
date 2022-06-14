@@ -38,7 +38,9 @@ def main():
     # exit()
 
 
-    getCommissionDifferencesOverTime(addr)
+    # getCommissionDifferencesOverTime(addr)
+    valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
+    print(len(valset))
 
     
 
@@ -95,9 +97,29 @@ def getDocuments():
 
 # ----------------------------------------------------------------------
 
-def getAllValidators(fromCacheIfThere=True):
-    pass
+def getAllValidators(mustBeBonded=True, fromCacheIfThere=True):
+    # We may set fromCacheIfThere to be False when we want to get the latest for an update to the set
+    k = "latest:valset"
+    TTL = 60*60
+    if fromCacheIfThere:
+        # check if we can read it from redis
+        # if not, we will query the validator set
+        latestVals = r.get(k) 
 
+        if latestVals is None:
+            # query the validator set & cache it
+            latestVals = getLatestValidatorSet(bondedOnly=mustBeBonded)
+            r.set(k, json.dumps(latestVals), ex=TTL)
+        else:
+            print("getAllValidators CACHED VERSION")
+            latestVals = json.loads(r.get(k).decode('utf-8'))
+    else:
+        # gets an uncached version so we can compare
+        print("getAllValidators UN-CACHED VERSION")
+        latestVals = getLatestValidatorSet()
+        r.set(k, json.dumps(latestVals), ex=TTL) # sets to the cache for the next run we want with cache
+
+    return latestVals
 
 
 def takeValidatorSnapshot(validatorOps):
@@ -141,8 +163,61 @@ def query_validator_commission_held_over_time(valop):
         return doc.get("values")
 
 
-  
+import requests  
+headers = {'accept': 'application/json'}
+def getTxDetails(txHash: str):
+    # this def needs more work
+    '''
+    Before running this function, we should have already looped through all validators & got their held tokens. 
+        If new held < previous held, we need to loop through blocks since last time we checked
     
+    '''
+    link = f'https://api.cosmos.network/cosmos/tx/v1beta1/txs/{txHash}'
+    response = requests.get(link, headers=headers).json()
+    
+    print(link)
+    messages = list(response['tx']['body']['messages'])
+
+    # print(len(messages), len(log_events)); # exit()
+
+    for msg in messages:
+        if msg['@type'] != '/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission':
+            # print("Skipping " + msg['@type'])
+            continue
+
+        # delegator_address = msg['delegator_address']
+        # validator_address = msg['validator_address']
+        # timestamp = msg['tx_response']['timestamp'] # 2022-05-11T13:23:20Z
+        
+        receiverAddr = ""
+        receiverValAddr = ""
+        receivedCommission = "" # 99044465uatom
+        wasWithdraw = False
+        
+        j = json.loads(response['tx_response']['raw_log'])
+        isWithdrawCommission = False
+        for m in j:
+            for k in m['events']:
+                t = k['type'] # coin_received, coin_spent, message, transfer
+                if t == 'message':
+                    for attr in list(k['attributes']):
+                        # print(attr['value'])
+                        if attr['key'] == 'action' and attr['value'] == '/cosmos.distribution.v1beta1.MsgWithdrawValidatorCommission':
+                            isWithdrawCommission = True
+                        elif attr['key'] == 'sender':
+                            addr = attr['value']
+                            if 'valop' in addr:
+                                receiverValAddr = addr
+                            else:
+                                receiverAddr = addr
+                elif (t == 'transfer' or t == "coin_received") and isWithdrawCommission:
+                    for attr in list(k['attributes']):
+                        if attr['key'] == 'amount':
+                            receivedCommission = attr['value']
+                        elif attr['key'] == 'receiver':
+                            receiverAddr = attr['value']                                        
+        print('MsgWithdrawValidatorCommission', isWithdrawCommission, receiverAddr, receiverValAddr, receivedCommission)                    
+        exit()
 
 
 
