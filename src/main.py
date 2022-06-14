@@ -110,8 +110,7 @@ def getAllValidators(mustBeBonded=True, fromCacheIfThere=True):
 
 
 def takeValidatorSnapshot(validatorOps, breakIdx: int = 5, currentEpochTime: str = str(int(time.time()))): # Make async with httpx in the future?
-  # loops through all validators & snapshots their current comission
-  # TODO: Pass through the time so all keys are the same?
+  # loops through all validators & snapshots their current commission
   
   # We could save every 1 hour in "hourly" section. Then have a "daily" as well? still in epoch time?
   # So I guess on hour 23 we move the last hour from hourly to daily collection.

@@ -4,3 +4,8 @@ cosmosvaloper196ax4vc0lwpxndu9dyhvca7jhxp70rmcvrj90c
 
 Block: 10449274
 Tx: FC8431ACA7444B87DD1DDE14E7FB7BB1BD0BC314B443325DE1268CE362636247
+
+
+
+xsync - https://www.youtube.com/watch?v=4CVTZub6cl4&ab_channel=Carberra
+pip3 install xsync
