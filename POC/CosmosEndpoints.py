@@ -2,14 +2,16 @@ import requests
 
 # NO REDIS THINGS IN HERE
 
-REST_ENDPOINT = "https://api.cosmos.network"
+# REST_ENDPOINT = "https://api.cosmos.network"
+REST_ENDPOINT = "https://lcd.cosmos.ezstaking.io"
 headers = {'accept': 'application/json'}
 PAGE_LIMIT = "&pagination.limit=1000"
 
 # https://v1.cosmos.network/rpc/v0.45.1
 
-def getOutstandingRewards(valop: str, humanReadable = True) -> dict:
-    response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/outstanding_rewards', headers=headers)
+def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
+    # I assume /outstanding_rewards is their commission AND their self bonded rewards? Look into API
+    response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/commission', headers=headers)
 
     data = {}
     rewards = response.json()['rewards']['rewards']
@@ -38,7 +40,10 @@ def getLatestValidatorSet(bondedOnly: bool = True):
        
     return validators
 
-    
+
+def getValidatorSlashes(valop: str) -> list:
+    response = requests.get(f'{REST_ENDPOINT}/cosmos/distribution/v1beta1/validators/{valop}/slashes').json()
+    return response['slashes']
 
 
 
