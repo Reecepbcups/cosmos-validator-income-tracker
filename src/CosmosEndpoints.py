@@ -26,9 +26,11 @@ def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
         data[denom] = amt
     return data
 
+
 def getLatestBlockHeight() -> int:
     response = requests.get('https://api.cosmos.network/blocks/latest', headers=headers).json()
     return int(response['block']['header']['height'])
+
 
 def getLatestValidatorSet(bondedOnly: bool = True):    
     link = f'{REST_ENDPOINT}/cosmos/staking/v1beta1/validators?'
@@ -52,7 +54,6 @@ def getValidatorSlashes(valop: str) -> list:
 
 
 # More specific
-
 def getTxsAtHeight(height: int, msgType: str = ""):
     params = {
         'events': f'tx.height={height}',

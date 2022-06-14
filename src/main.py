@@ -15,6 +15,8 @@ from dotenv import load_dotenv
 from MongoHelper import MongoHelper
 from CosmosEndpoints import getOutstandingCommissionRewards, getLatestValidatorSet, getValidatorSlashes
 
+from util import epochTimeToHumanReadable
+
 
 load_dotenv()
 m = MongoHelper(uri=os.getenv('MONGODB_URI'))
@@ -26,26 +28,17 @@ def main():
     addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay"
     # takeValidatorSnapshot(addr)
 
-    # CACHE: Save validators to file
-    # values = getLatestValidatorSet()
-    # with open('validators.json', 'w') as f:
-    #   json.dump(getLatestValidatorSet(), f, indent=4)
-
-    # read JSON from validators.json
-    # with open('validators.json') as f:
-    #     validators = dict(json.load(f))
-    # takeValidatorSnapshot(list(validators.keys()))
-    # exit()
+    '''
+    gets latest cached version of the validator set
+    '''
+    # valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
+    # print(len(valset), valset.keys()) 
+    # takeValidatorSnapshot(list(valset.keys()))
 
 
-    # getCommissionDifferencesOverTime(addr)
-    valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
-    print(len(valset))
+    getCommissionDifferencesOverTime(addr)
 
     
-
-def epochTimeToHumanReadable(epoch: str):
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(int(epoch)))
 
 
 def getCommissionDifferencesOverTime(valop: str):
@@ -80,9 +73,12 @@ def getCommissionDifferencesOverTime(valop: str):
             print(f"Total Gain: ${round((-diff)*cosmosPrice, 2)}")
             # add to queue / query them for check blocks for any Txs they have done. 
             # Get their msg withdraw block from last time we checked blocks
+            # save the amount they withdrew to a MongoDB instance
+            # data should have:
+            # {validator: addr, {commissionWithdrawn: amt, time: t, hash: txhash}}
+
         # update values for the next run    
         lastCommission, lastTime = amt, t
-
 
 def getDocuments():
     '''Get mongodb documents from a collection in order based on the time field (epoch)'''
@@ -99,6 +95,7 @@ def getDocuments():
 
 def getAllValidators(mustBeBonded=True, fromCacheIfThere=True):
     # We may set fromCacheIfThere to be False when we want to get the latest for an update to the set
+    # ^ useful when we want to save snapshot latest commissions to the cache
     k = "latest:valset"
     TTL = 60*60
     if fromCacheIfThere:
@@ -130,8 +127,7 @@ def takeValidatorSnapshot(validatorOps):
   # for now we just do it every hour
 
   # validators = getLatestValidatorSet()
-  for idx, val in enumerate(validatorOps):
-    
+  for idx, val in enumerate(validatorOps):    
     pastData = m.find_one(db, 'atom', {'validator': val})
     newData = {str(int(time.time())): getOutstandingCommissionRewards(val).get("atom")}
 
@@ -149,10 +145,9 @@ def takeValidatorSnapshot(validatorOps):
     m.delete_one(db, 'atom', {'validator': val})
     m.insert(db, 'atom', newData)
 
-
-    # m.insert(db, collectionName="atom", values=data)  
     if idx == 5:
-      break
+        print("takeValidatorSnapshot() hit index limit of 5 due to wanting to break here & reduce load")
+        break
 
 
 def query_validator_commission_held_over_time(valop):
