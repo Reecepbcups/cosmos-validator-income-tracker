@@ -25,9 +25,6 @@ db = os.getenv('MONGO_DB_NAME')
 r = redis.Redis(host="localhost", port=6379, db=0)
 
 def main():
-    addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay" # Castlenode
-    # takeValidatorSnapshot(addr)
-
     '''
     gets latest cached version of the validator set
     '''
@@ -36,12 +33,17 @@ def main():
     # print(len(valset), valset.keys()); #print(valset.get(addr)['moniker'])
     takeValidatorSnapshot(valList, breakIdx=-1)
 
+    # addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay" # Castlenode
+    addr = "cosmosvaloper1qwl879nx9t6kef4supyazayf7vjhennyh568ys" # Certus One;
+    getCommissionDifferencesOverTime(addr)
 
-    # getCommissionDifferencesOverTime(addr)
 
+def getMoniker(valop: str) -> str:
+    valset = getAllValidators(mustBeBonded=False, fromCacheIfThere=True)
+    return valset.get(valop)['moniker']
 
 def getCommissionDifferencesOverTime(valop: str):
-    print("Commissions for validator: ", valop)    
+    print(f"Commissions for validator: {getMoniker(valop)}; {valop}")    
     # sort commissions by their key which is an epoch time
     commissions = dict(query_validator_commission_held_over_time(valop))
     commissions = sorted(commissions.items(), key=operator.itemgetter(0), reverse=False) # newest time to oldest
@@ -60,8 +62,7 @@ def getCommissionDifferencesOverTime(valop: str):
         if isFirst: isFirst = False; continue
 
         # subtract amt from last commission, and print the time difference        
-        print(f"\nBetween {epochTimeToHumanReadable(lastTime)} & {epochTimeToHumanReadable(t)}")
-
+        # print(f"\nBetween {epochTimeToHumanReadable(lastTime)} & {epochTimeToHumanReadable(t)}")
         diff = amt-lastCommission
         if diff > 0:        
             # These would always be the same seconds provided we took snapshots at the correct times
@@ -79,6 +80,8 @@ def getCommissionDifferencesOverTime(valop: str):
             
         # update values for the next run    
         lastCommission, lastTime = amt, t
+
+    print(f"Total held commission amount: {amt}atom = ${amt*cosmosPrice}")
 
     
 # ----------------------------------------------------------------------
