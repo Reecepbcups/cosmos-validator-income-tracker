@@ -23,3 +23,10 @@ in 811 Seconds their ATOM increased by 0.10200124511902686 ($0.657).    Total Co
 Between 2022-06-14 08:57:03 & 2022-06-14 09:11:30
 in 867 Seconds their ATOM increased by 0.08385481313416676 ($0.54).     Total Commission Held: 4912.083854813134
 ```
+
+
+
+
+https://api.cosmos.network/cosmos/tx/v1beta1/txs?events=tx.height%3D10000000&events=message.module%3D'distribution'&order_by=ORDER_BY_UNSPECIFIED
+
+- NOTE: update website documents as the event handlers are not correct in relation to the protobuf services.
