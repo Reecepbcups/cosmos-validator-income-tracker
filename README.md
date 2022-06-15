@@ -27,6 +27,4 @@ in 867 Seconds their ATOM increased by 0.08385481313416676 ($0.54).     Total Co
 
 
 
-https://api.cosmos.network/cosmos/tx/v1beta1/txs?events=tx.height%3D10000000&events=message.module%3D'distribution'&order_by=ORDER_BY_UNSPECIFIED
-
-- NOTE: update website documents as the event handlers are not correct in relation to the protobuf services.
+https://api.cosmos.network/cosmos/tx/v1beta1/txs?events=tx.height%3D10449274&events=message.action%3D%27%2Fcosmos.distribution.v1beta1.MsgWithdrawValidatorCommission%27&order_by=ORDER_BY_UNSPECIFIED
