@@ -6,6 +6,17 @@ Block: 10449274
 Tx: FC8431ACA7444B87DD1DDE14E7FB7BB1BD0BC314B443325DE1268CE362636247
 
 
+# In the future I can subscribe to events for distribution
+https://docs.tendermint.com/master/tendermint-core/subscription.html#event-log-api
+
+
+# Get block & only query events for the MsgWithdrawValidatorCommission action.
+curl -X GET "https://api.cosmos.network/cosmos/tx/v1beta1/txs?events=tx.height%3D10449274&events=message.action%3D'%2Fcosmos.distribution.v1beta1.MsgWithdrawValidatorCommission'&order_by=ORDER_BY_UNSPECIFIED" -H "accept: application/json"
+
 
 xsync - https://www.youtube.com/watch?v=4CVTZub6cl4&ab_channel=Carberra
 pip3 install xsync
+
+
+
+
