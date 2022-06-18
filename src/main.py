@@ -28,10 +28,10 @@ def main():
     '''
     gets latest cached version of the validator set
     '''
-    valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
-    valList = list(valset.keys())
+    # valset = getAllValidators(mustBeBonded=True, fromCacheIfThere=True)
+    # valList = list(valset.keys())
     # print(len(valset), valset.keys()); #print(valset.get(addr)['moniker'])
-    takeValidatorSnapshot(valList, breakIdx=-1)
+    # takeValidatorSnapshot(valList, breakIdx=-1)
 
     # addr = "cosmosvaloper1qs8tnw2t8l6amtzvdemnnsq9dzk0ag0z52uzay" # Castlenode
     addr = "cosmosvaloper1qwl879nx9t6kef4supyazayf7vjhennyh568ys" # Certus One;

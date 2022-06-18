@@ -1,9 +1,11 @@
 import requests
-
+from dotenv import load_dotenv
+import os
 # NO REDIS IN HERE
 
 # Switches randomly between the endpoints so we dont get cooldown'ed
-_REST_ENDPOINT = ["https://api.cosmos.network", "https://lcd.cosmos.ezstaking.io", "https://rest-cosmoshub.ecostake.com"]
+load_dotenv()
+_REST_ENDPOINT = os.getenv('COSMOS_REST_ENDPOINTS').split(",")
 
 headers = {'accept': 'application/json'}
 PAGE_LIMIT = "&pagination.limit=1000"
@@ -16,9 +18,11 @@ Looks like I could subscribe via RPC
 
 import random as r
 def getEndpoint():
+    # print(_REST_ENDPOINT)
     return _REST_ENDPOINT[r.randint(0, len(_REST_ENDPOINT)-1)]
 
 def getOutstandingCommissionRewards(valop: str, humanReadable = True) -> dict:
+    # This function should really be async / multithreaded in some way
     # I assume /outstanding_rewards is their commission AND their self bonded rewards? Look into API
     response = requests.get(f'{getEndpoint()}/cosmos/distribution/v1beta1/validators/{valop}/commission', headers=headers)
     print(f'{getEndpoint()}/cosmos/distribution/v1beta1/validators/{valop}/commission')
